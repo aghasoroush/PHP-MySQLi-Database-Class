@@ -1,4 +1,14 @@
 <?php
+
+class MysqliDbException extends Exception
+{
+    public function __construct($message, $code = 0)
+    {
+        parent::__construct($message, $code);
+    }
+}
+
+
 /**
  * MysqliDb Class
  *
@@ -36,6 +46,11 @@ class MysqliDb
      * @var array
      */
     protected $_where = array();
+    
+    /**
+     * An array that holds the limit start and count
+     **/
+    protected $_limit = array();
     /**
      * Dynamic type list for where condition values
      *
@@ -238,6 +253,24 @@ class MysqliDb
         $this->_where[$whereProp] = $whereValue;
         return $this;
     }
+    
+    /**
+     * This method sets the limit for the query
+     * 
+     * @param integer $start
+     * @param integer $count
+     * @throw MysqliDbException
+     * @return MysqliDb
+     **/
+    public function limit($start, $count)
+    {
+        foreach (array($start, $limit) as $param)
+            if (!is_numeric($param))
+                throw new MysqliDbException('Invalid parameter type!');
+        
+        $this->_limit = array($start, $limit);
+        return $this;
+    }
 
 
     /**
@@ -261,7 +294,7 @@ class MysqliDb
     {
         return $this->_mysqli->real_escape_string($str);
     }
-
+    
     /**
      * This method is needed for prepared statements. They require
      * the data type of the field to be bound with "i" s", etc.
@@ -309,9 +342,10 @@ class MysqliDb
     {
         $hasTableData = is_array($tableData);
         $hasConditional = !empty($this->_where);
+        $hsaLimit       = !empty($this->_limit);
 
         // Did the user call the "where" method?
-        if (!empty($this->_where)) {
+        if ($hasConditional) {
 
             // if update data was passed, filter through and create the SQL query, accordingly.
             if ($hasTableData) {
@@ -365,6 +399,11 @@ class MysqliDb
                 $this->_query = rtrim($this->_query, ', ');
                 $this->_query .= ')';
             }
+        }
+        
+        if ($hasLimit)
+        {
+            $this->_query .= ' LIMIT ' . implode(', ', $this->_limit) . ' ';
         }
 
         // Did the user set a limit
