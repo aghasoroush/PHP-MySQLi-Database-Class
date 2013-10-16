@@ -80,6 +80,16 @@ $results = $db->get('tableName');
 print_r($results); // contains array of returned rows
 ```
 
+
+### Limit Method
+
+```php
+$results = $db->limit(0, 10)->
+	get('users');
+
+print_r($results);
+```
+
 Optionally you can use method chaining to call where multiple times without referencing your object over an over:
 
 ```php
