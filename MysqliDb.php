@@ -112,6 +112,7 @@ class MysqliDb
     protected function reset()
     {
         $this->_where = array();
+		$this->_limit = array();
         $this->_bindParams = array(''); // Create the empty 0 index
         unset($this->_query);
         unset($this->_whereTypeList);
@@ -264,11 +265,11 @@ class MysqliDb
      **/
     public function limit($start, $count)
     {
-        foreach (array($start, $limit) as $param)
+        foreach (array($start, $count) as $param)
             if (!is_numeric($param))
                 throw new MysqliDbException('Invalid parameter type!');
         
-        $this->_limit = array($start, $limit);
+        $this->_limit = array($start, $count);
         return $this;
     }
 
@@ -342,7 +343,7 @@ class MysqliDb
     {
         $hasTableData = is_array($tableData);
         $hasConditional = !empty($this->_where);
-        $hsaLimit       = !empty($this->_limit);
+        $hasLimit       = !empty($this->_limit);
 
         // Did the user call the "where" method?
         if ($hasConditional) {
